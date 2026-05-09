@@ -3,812 +3,450 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Classic Slot Machine</title>
+  <title>VIP Luxury Slot Machine</title>
   <style>
     :root {
-      --bg-1: #0f1015;
-      --bg-2: #1b1d25;
-      --panel: #22252f;
-      --panel-2: #2c3140;
-      --border: #8a6a1f;
-      --gold: #f2c14e;
-      --gold-deep: #b8871a;
-      --screen: #0b0f14;
-      --screen-text: #7dff9a;
-      --accent: #ff5b5b;
-      --white: #f6f7fb;
-      --muted: #b8c0d4;
-      --shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-      --reel-size: 150px;
+      --bg-dark: #030303;
+      --bg-light: #1c1a16;
+      --machine-bg: linear-gradient(145deg, #1a1815 0%, #0a0a0a 100%);
+      --gold-light: #fdf0a6;
+      --gold: #d4af37;
+      --gold-dark: #8b6914;
+      --gold-grad: linear-gradient(180deg, #fdf0a6 0%, #d4af37 45%, #997a00 100%);
+      --gold-border: linear-gradient(145deg, #d4af37, #554400);
+      --text: #ffffff;
+      --reel-size: 120px;
     }
 
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; width: 100%; min-height: 100%; }
     body {
-      font-family: "Segoe UI", "Malgun Gothic", sans-serif;
-      background: radial-gradient(circle at top, #2c3140 0%, var(--bg-2) 35%, var(--bg-1) 100%);
-      color: var(--white);
+      font-family: 'Georgia', 'Segoe UI', serif;
+      background: radial-gradient(circle at 50% 30%, #1c1a16 0%, #030303 80%);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      user-select: none;
-    }
-
-    .entry-screen {
-      width: min(520px, 100%);
-      background: linear-gradient(180deg, #232734, #171922);
-      border: 8px solid var(--border);
-      border-radius: 28px;
-      box-shadow: var(--shadow);
-      padding: 34px 28px;
-      text-align: center;
-    }
-    .entry-screen h1 {
-      margin: 0 0 12px;
-      font-size: 42px;
-      color: var(--gold);
-      text-shadow: 0 0 12px rgba(242, 193, 78, 0.2);
-    }
-    .entry-screen p {
-      margin: 0 0 22px;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-    .start-input {
-      width: 100%;
-      padding: 14px;
-      border-radius: 16px;
-      border: 2px solid #4b5268;
-      background: #11141b;
-      color: var(--screen-text);
-      font-size: 28px;
-      text-align: center;
-      font-weight: 700;
-      margin-bottom: 16px;
-    }
-
-    button {
-      border: 0;
-      cursor: pointer;
-      transition: transform 0.12s ease, filter 0.12s ease;
-      font-weight: 800;
-    }
-    button:hover { filter: brightness(1.04); }
-    button:active { transform: scale(0.98); }
-
-    .start-btn {
-      width: 100%;
-      padding: 16px;
-      border-radius: 18px;
-      background: linear-gradient(180deg, #ffe38a, #f2c14e);
-      color: #362600;
-      font-size: 22px;
-      box-shadow: 0 8px 0 var(--gold-deep);
-    }
-
-    .game-screen {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-    }
-
-    .machine-wrap {
-      display: flex;
-      align-items: flex-end;
-      gap: 22px;
-    }
-
-    .slot-machine {
-      width: min(900px, 100%);
-      background: linear-gradient(180deg, #2e3342, #1b1e27 70%);
-      border: 12px solid var(--border);
-      border-radius: 38px;
-      box-shadow: var(--shadow), inset 0 0 24px rgba(255,255,255,0.04);
-      padding: 24px;
-    }
-
-    .top-sign {
-      background: linear-gradient(180deg, #111318, #050608);
-      border: 4px solid var(--gold);
-      border-radius: 22px;
-      padding: 18px;
-      text-align: center;
-      margin-bottom: 18px;
-      box-shadow: inset 0 0 18px rgba(242,193,78,0.18);
-    }
-    .top-sign h2 {
       margin: 0;
-      font-size: 34px;
-      color: var(--gold);
-      letter-spacing: 1px;
-    }
-    .jackpot-line {
-      margin-top: 8px;
-      font-size: 22px;
-      color: #fff5cf;
+      user-select: none;
+      overflow: hidden;
     }
 
-    .reel-board {
-      background: linear-gradient(180deg, #d9dee8, #c6cedd 15%, #ffffff 50%, #cad2df 85%, #aeb8ca);
-      border-radius: 24px;
-      padding: 18px;
-      box-shadow: inset 0 0 30px rgba(0,0,0,0.18);
-      margin-bottom: 18px;
-      position: relative;
+    /* 화면 컨테이너 */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* 공통 패널 스타일 (초기화면 & 종료화면) */
+    .menu-panel {
+      background: var(--machine-bg); padding: 45px; border-radius: 16px;
+      text-align: center; width: 420px; position: relative;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.9), inset 0 1px 1px rgba(255,255,255,0.1);
+      margin: 0 auto;
     }
-    .reel-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
+    .menu-panel::before {
+      content: ""; position: absolute; inset: -3px; border-radius: 19px;
+      background: var(--gold-grad); z-index: -1;
+    }
+    .menu-panel h1 { 
+      margin-bottom: 10px; font-weight: 900; font-size: 36px; letter-spacing: 3px;
+      background: var(--gold-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-shadow: 0 4px 15px rgba(212, 175, 55, 0.15);
+    }
+    .menu-panel p { color: #888; font-family: sans-serif; font-size: 14px; margin-bottom: 30px; }
+    
+    input[type="number"] {
+      width: 80%; padding: 14px; font-size: 24px; text-align: center; margin-bottom: 25px;
+      border-radius: 6px; border: 1px solid var(--gold-dark);
+      background-color: #050505; color: var(--gold-light); outline: none; font-family: monospace;
+    }
+
+    button.gold-btn {
+      background: var(--gold-grad); color: #111; border: none; padding: 16px 30px;
+      font-size: 20px; font-weight: 900; border-radius: 6px; cursor: pointer; width: 100%;
+      letter-spacing: 2px; box-shadow: 0 6px 15px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.4);
+      transition: all 0.15s ease;
+    }
+    button.gold-btn:active { transform: translateY(2px); box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+    button.gold-btn:disabled { background: #333; color: #555; cursor: not-allowed; box-shadow: none; }
+
+    /* 게임 종료 화면 전용 텍스트 */
+    #final-balance-display {
+      font-size: 40px; color: var(--gold-light); font-family: monospace; margin: 20px 0;
+      text-shadow: 0 0 20px rgba(212,175,55,0.4);
+    }
+
+    /* 메인 게임 화면 컨테이너 */
+    .machine-wrap { display: flex; align-items: flex-end; gap: 20px; }
+
+    /* 🚪 좌측 상단 CASH OUT 버튼 (슬롯머신 테마 적용) */
+    #quit-btn {
+      background: linear-gradient(180deg, #1f1b13, #0a0805);
+      color: var(--gold-light);
+      border: 2px solid var(--gold-dark);
+      padding: 20px 15px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.9), inset 0 2px 5px rgba(212,175,55,0.2);
+      transition: all 0.2s;
+      font-family: 'Georgia', serif;
+      letter-spacing: 1px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      height: fit-content;
+      margin-bottom: 35px; /* 본체의 패딩과 하단 라인 맞춤 */
+    }
+    #quit-btn:hover {
+      background: linear-gradient(180deg, #2c2518, #110e08);
+      border-color: var(--gold); color: #fff;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.9), inset 0 2px 10px rgba(212,175,55,0.4);
+      transform: translateY(-2px);
+    }
+    #quit-btn:disabled {
+      background: #111; color: #555; border-color: #333; cursor: not-allowed; 
+      box-shadow: none; transform: none;
+    }
+
+    /* 슬롯머신 본체 */
+    .slot-machine-core {
+      background: var(--machine-bg); padding: 35px; border-radius: 20px;
+      width: 620px; text-align: center; position: relative;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.95), inset 0 1px 2px rgba(255,255,255,0.05);
+    }
+    .slot-machine-core::before {
+      content: ""; position: absolute; inset: -4px; border-radius: 24px;
+      background: var(--gold-border); z-index: -1;
+    }
+
+    .info-panel { display: flex; justify-content: space-between; margin-bottom: 25px; }
+    .info-box {
+      background: linear-gradient(180deg, #0a0a0a, #000); padding: 15px; border-radius: 8px;
+      border: 1px solid #3a2c00; width: 46%; box-shadow: inset 0 5px 15px rgba(0,0,0,1);
+    }
+    .info-box div { font-size: 12px; color: #a38a41; margin-bottom: 8px; font-weight: bold; letter-spacing: 1px; font-family: sans-serif; }
+    .info-box span, .info-box input {
+      font-size: 28px; font-weight: bold; color: var(--gold-light); background: transparent; 
+      border: none; text-align: center; width: 100%; outline: none; font-family: monospace;
+      text-shadow: 0 0 10px rgba(212,175,55,0.2);
+    }
+
+    /* 슬롯 릴 디자인 */
+    .reel-board {
+      background: #080808; padding: 25px; border-radius: 12px; border: 1px solid #222;
+      box-shadow: inset 0 10px 30px rgba(0,0,0,1); display: flex; justify-content: space-between; 
+      margin-bottom: 25px; position: relative;
+    }
+    .reel-board::after {
+      content: ""; position: absolute; inset: 0; border: 2px solid var(--gold-dark); 
+      border-radius: 12px; pointer-events: none; opacity: 0.5;
     }
     .reel-window {
-      height: var(--reel-size);
-      overflow: hidden;
-      border-radius: 18px;
-      border: 5px solid #5c6476;
-      background: linear-gradient(180deg, #fefefe, #edf1f7);
-      position: relative;
-      box-shadow: inset 0 0 18px rgba(0,0,0,0.1);
+      width: 30%; height: var(--reel-size); overflow: hidden;
+      background: linear-gradient(180deg, #cfc9bd, #fdfaf4 20%, #fdfaf4 80%, #cfc9bd); 
+      border-radius: 6px; position: relative;
+      box-shadow: 0 0 0 3px #111, 0 0 0 5px var(--gold-dark), inset 0 8px 15px rgba(0,0,0,0.5);
     }
-    .reel-window::before,
+    .reel-window::before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 30px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.6), transparent); z-index: 2; pointer-events: none;
+    }
     .reel-window::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 24px;
-      z-index: 2;
-      pointer-events: none;
+      content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 30px;
+      background: linear-gradient(0deg, rgba(0,0,0,0.6), transparent); z-index: 2; pointer-events: none;
     }
-    .reel-window::before { top: 0; background: linear-gradient(180deg, rgba(0,0,0,0.22), transparent); }
-    .reel-window::after { bottom: 0; background: linear-gradient(0deg, rgba(0,0,0,0.22), transparent); }
-    .payline {
-      display: none;
-    }
-    .reel-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      position: absolute;
-      width: 100%;
-      top: 0;
-    }
+    .reel-list { list-style: none; margin: 0; padding: 0; }
     .symbol {
-      height: var(--reel-size);
-      display: grid;
-      place-items: center;
-      font-size: 94px;
-      color: #10141c;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      height: var(--reel-size); display: flex; align-items: center; justify-content: center; 
+      font-size: 70px; color: #111; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.15));
     }
 
-    .control-panel {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 14px;
-      margin-bottom: 16px;
-    }
-    .screen-box {
-      background: var(--screen);
-      border: 2px solid #4c5567;
-      border-radius: 16px;
-      padding: 12px;
-      text-align: center;
-      box-shadow: inset 0 0 16px rgba(0,0,0,0.35);
-      min-height: 88px;
-    }
-    .screen-label {
-      font-size: 12px;
-      color: #8790a5;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      letter-spacing: 0.08em;
-    }
-    .screen-value {
-      font-family: Consolas, monospace;
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--screen-text);
-      text-shadow: 0 0 10px rgba(125,255,154,0.18);
-    }
-    #bet-input {
-      width: 100%;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: inherit;
-      font: inherit;
-      text-align: center;
+    #message-board {
+      background: #000; padding: 16px; border-radius: 6px; font-size: 16px; font-weight: bold; 
+      margin-bottom: 25px; border: 1px solid #332700; color: var(--gold-light); font-family: sans-serif;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.8); letter-spacing: 0.5px;
     }
 
-    .bet-buttons {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .bet-btn {
-      padding: 11px 8px;
-      border-radius: 12px;
-      background: #3d4558;
-      color: white;
-      font-size: 14px;
-    }
-    .bet-btn.gold {
-      background: linear-gradient(180deg, #e7c566, #b8871a);
-      color: #201600;
-      grid-column: span 3;
-    }
-
-    .message-board {
-      min-height: 62px;
-      border-radius: 16px;
-      background: #0b0d12;
-      border: 2px dashed #4f596d;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      font-size: 21px;
-      font-weight: 700;
-      padding: 10px 14px;
-      margin-bottom: 14px;
-    }
-
-    .action-row {
-      display: grid;
-      grid-template-columns: 180px 1fr;
-      gap: 14px;
-    }
-    .auto-btn {
-      border-radius: 18px;
-      background: #394051;
-      color: #dbe6ff;
-      font-size: 22px;
-      border: 3px solid #6b7489;
-      min-height: 78px;
-    }
-    .auto-btn.active {
-      background: #7dff9a;
-      color: #102015;
-      border-color: #bff7cd;
-    }
-    .spin-btn {
-      border-radius: 20px;
-      background: linear-gradient(180deg, #ffe58f, #f2c14e);
-      color: #3b2900;
-      font-size: 40px;
-      min-height: 78px;
-      box-shadow: 0 10px 0 var(--gold-deep);
-    }
-    .spin-btn:disabled {
-      filter: grayscale(1);
-      cursor: not-allowed;
-      box-shadow: none;
-      transform: translateY(10px);
-    }
-
-    .handle-box {
-      width: 92px;
-      height: 300px;
-      position: relative;
-      cursor: pointer;
-    }
+    /* 레버 디자인 */
+    .handle-box { width: 80px; height: 260px; position: relative; cursor: pointer; }
     .handle-base {
-      width: 58px;
-      height: 150px;
-      background: linear-gradient(180deg, #394051, #1d212b);
-      border-radius: 0 22px 22px 0;
-      position: absolute;
-      left: 0;
-      bottom: 0;
-      border: 2px solid #575f73;
-      border-left: none;
+      width: 45px; height: 120px; background: linear-gradient(90deg, #111, #2a2a2a, #050505);
+      border-radius: 0 10px 10px 0; position: absolute; left: 0; bottom: 0;
+      border: 2px solid #443; border-left: none; box-shadow: 10px 10px 20px rgba(0,0,0,0.8);
     }
     .handle-stick {
-      width: 22px;
-      height: 210px;
-      background: linear-gradient(90deg, #667188, #ecf1ff, #667188);
-      position: absolute;
-      left: 18px;
-      bottom: 110px;
-      border-radius: 999px;
-      transform-origin: bottom center;
+      width: 16px; height: 180px; background: linear-gradient(90deg, #554400, var(--gold-light), #4a3800);
+      position: absolute; left: 14px; bottom: 100px; border-radius: 999px; transform-origin: bottom center;
+      box-shadow: inset -2px 0 5px rgba(0,0,0,0.5);
     }
     .handle-knob {
-      width: 76px;
-      height: 76px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #ff8d8d, #a50f0f);
-      position: absolute;
-      top: -52px;
-      left: 50%;
-      transform: translateX(-50%);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.3);
+      width: 60px; height: 60px; border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #fff 0%, var(--gold) 25%, #4a3600 80%);
+      position: absolute; top: -35px; left: 50%; transform: translateX(-50%);
+      box-shadow: 5px 15px 20px rgba(0,0,0,0.8);
     }
-    .handle-box:hover .handle-knob {
-      filter: brightness(1.08);
-    }
-    .pulling .handle-stick { animation: pullLever 0.55s ease-in-out; }
-
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .modal-content {
-      width: min(620px, 100%);
-      background: #232734;
-      border: 4px solid var(--gold);
-      border-radius: 24px;
-      padding: 28px;
-      position: relative;
-      box-shadow: var(--shadow);
-    }
-    .modal-content h3 {
-      margin-top: 0;
-      color: var(--gold);
-      font-size: 28px;
-      text-align: center;
-    }
-    .modal-content ul {
-      margin: 0;
-      padding-left: 20px;
-      color: var(--muted);
-      line-height: 1.8;
-    }
-    .close-btn {
-      position: absolute;
-      top: 12px;
-      right: 16px;
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: #394051;
-      color: white;
-      font-size: 20px;
-    }
-
-    .sys-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 12px;
-    }
-    .sys-btn {
-      flex: 1;
-      padding: 12px;
-      border-radius: 14px;
-      background: #394051;
-      color: white;
-      font-size: 14px;
-    }
-
-    .particle {
-      position: fixed;
-      width: 12px;
-      height: 12px;
-      border-radius: 3px;
-      pointer-events: none;
-      z-index: 120;
-      animation: fall 2s linear forwards;
-    }
-
+    .pulling .handle-stick { animation: pullLever 0.5s cubic-bezier(0.25, 0.1, 0.25, 1); }
     @keyframes pullLever {
       0%, 100% { transform: rotate(0deg); }
-      40% { transform: rotate(28deg); }
-      70% { transform: rotate(24deg); }
-    }
-    @keyframes fall {
-      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-      100% { transform: translateY(800px) rotate(700deg); opacity: 0; }
+      40% { transform: rotate(35deg); }
+      70% { transform: rotate(20deg); }
     }
 
-    @media (max-width: 980px) {
-      body { overflow: auto; }
-      .machine-wrap { flex-direction: column; align-items: center; }
-      .handle-box { display: none; }
-      .control-panel,
-      .action-row { grid-template-columns: 1fr; }
-      .reel-row { gap: 10px; }
-    }
-
-    @media (max-width: 640px) {
-      :root { --reel-size: 110px; }
-      .slot-machine { padding: 16px; }
-      .top-sign h2 { font-size: 26px; }
-      .jackpot-line { font-size: 18px; }
-      .symbol { font-size: 68px; }
-      .spin-btn { font-size: 30px; }
-      .message-board { font-size: 17px; }
+    /* 🕵️‍♂️ 극비 스텔스 조명 (화면 우측 하단 3px 초소형 원형 점) */
+    #stealth-light {
+      position: fixed; bottom: 15px; right: 15px; width: 3px; height: 3px;
+      border-radius: 50%; background-color: transparent;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      z-index: 9999; pointer-events: none; box-shadow: 0 0 5px transparent;
     }
   </style>
 </head>
 <body>
-  <section id="entry-screen" class="entry-screen">
-    <h1>🎰 CLASSIC SLOT</h1>
-    <p>구조를 단순하게 정리한 기본 슬롯머신 버전입니다. RPG 요소를 제거하고, 더 전형적인 슬롯머신 형태로 개편했습니다.</p>
-    <input type="number" id="start-balance" class="start-input" value="10000" min="1000" step="1000" />
-    <button id="start-btn" class="start-btn" type="button">게임 시작</button>
-  </section>
 
-  <main id="game-screen" class="game-screen">
+  <!-- 스텔스 점 조명 -->
+  <div id="stealth-light"></div>
+
+  <!-- 1. 초기 설정 화면 -->
+  <div id="entry-screen" class="screen active menu-panel">
+    <h1>VIP SLOT</h1>
+    <p>품격 있는 귀하를 환영합니다. 시작 포인트를 설정해주십시오.</p>
+    <!-- 초기 세팅 1000 PT -->
+    <input type="number" id="start-balance" value="1000" min="100" step="100" />
+    <button class="gold-btn" onclick="startGame()">ENTER THE ROOM</button>
+  </div>
+
+  <!-- 2. 메인 게임 화면 -->
+  <div id="game-screen" class="screen">
     <div class="machine-wrap">
-      <section class="slot-machine">
-        <div class="top-sign">
-          <h2>CLASSIC SLOT MACHINE</h2>
-          <div class="jackpot-line">JACKPOT: ₩<span id="jackpot-amount">10,000</span></div>
+
+      <!-- 좌측 메탈릭 수동 종료 버튼 -->
+      <button id="quit-btn" onclick="endGame(true)">
+        <span>CASH OUT</span>
+        <span style="font-size: 13px; color: #a38a41; font-family: sans-serif;">(정산 및 종료)</span>
+      </button>
+      
+      <div class="slot-machine-core">
+        <div class="info-panel">
+          <div class="info-box">
+            <div>CURRENT BALANCE (PT)</div>
+            <span id="balance-display">0</span>
+          </div>
+          <div class="info-box">
+            <div>BET AMOUNT (PT)</div>
+            <!-- 기본 베팅 100 PT -->
+            <input type="number" id="bet-input" value="100" min="10" step="10" />
+          </div>
         </div>
 
         <div class="reel-board">
-          <div class="payline"></div>
-          <div class="reel-row">
-            <div class="reel-window"><ul id="reel1" class="reel-list"></ul></div>
-            <div class="reel-window"><ul id="reel2" class="reel-list"></ul></div>
-            <div class="reel-window"><ul id="reel3" class="reel-list"></ul></div>
-          </div>
+          <div class="reel-window"><ul id="reel1" class="reel-list"></ul></div>
+          <div class="reel-window"><ul id="reel2" class="reel-list"></ul></div>
+          <div class="reel-window"><ul id="reel3" class="reel-list"></ul></div>
         </div>
 
-        <div class="control-panel">
-          <div class="screen-box">
-            <div class="screen-label">Balance</div>
-            <div id="balance-display" class="screen-value">0</div>
-          </div>
-          <div class="screen-box">
-            <div class="screen-label">Spins / Max Win</div>
-            <div style="font-size:15px; line-height:1.7; color: var(--muted); font-family: Consolas, monospace;">
-              SPINS: <span id="stat-spins" style="color:#fff;">0</span><br>
-              MAX: <span id="stat-maxwin" style="color: var(--gold);">0</span>
-            </div>
-          </div>
-          <div class="screen-box">
-            <div class="screen-label">Bet</div>
-            <input type="number" id="bet-input" class="screen-value" value="100" min="10" step="10" />
-            <div class="bet-buttons">
-              <button class="bet-btn" data-bet="-1000">-1K</button>
-              <button class="bet-btn" data-bet="-500">-500</button>
-              <button class="bet-btn" data-bet="-100">-100</button>
-              <button class="bet-btn" data-bet="100">+100</button>
-              <button class="bet-btn" data-bet="500">+500</button>
-              <button class="bet-btn" data-bet="1000">+1K</button>
-              <button class="bet-btn gold" id="max-bet-btn">MAX BET</button>
-            </div>
-          </div>
-        </div>
+        <div id="message-board">준비 완료. 행운을 빕니다.</div>
+        <button id="spin-btn" class="gold-btn" onclick="spin()">PULL TO SPIN (Space)</button>
+      </div>
 
-        <div id="message-board" class="message-board">준비 완료. SPACE 또는 SPIN 버튼을 누르세요.</div>
-
-        <div class="action-row">
-          <button id="auto-btn" class="auto-btn" type="button">AUTO SPIN</button>
-          <button id="spin-btn" class="spin-btn" type="button" aria-label="spin">SPIN</button>
-        </div>
-
-        <div class="sys-row">
-          <button id="help-btn" class="sys-btn" type="button">배당 정보</button>
-          <button id="sound-btn" class="sys-btn" type="button">🔊 사운드 켜짐</button>
-          <button id="reset-btn" class="sys-btn" type="button">게임 초기화</button>
-        </div>
-      </section>
-
-      <div id="handle-container" class="handle-box">
+      <div id="handle-container" class="handle-box" onclick="spin()">
         <div class="handle-base"></div>
         <div class="handle-stick"><div class="handle-knob"></div></div>
       </div>
-    </div>
-  </main>
 
-  <div id="info-modal" class="modal-overlay">
-    <div class="modal-content">
-      <button id="close-modal" class="close-btn" type="button">×</button>
-      <h3>배당 정보</h3>
-      <ul>
-        <li>같은 그림 3개가 나오면 당첨됩니다.</li>
-        <li>🍒 1배 / 🍋 1.5배 / 🍇 2배 / 💎 3배 / 7️⃣ 5배</li>
-        <li>7️⃣ 7️⃣ 7️⃣이 나오면 기본 배당과 함께 잭팟을 획득합니다.</li>
-        <li>스핀할 때마다 베팅액의 10%가 잭팟에 누적됩니다.</li>
-      </ul>
     </div>
   </div>
 
+  <!-- 3. 게임 종료 화면 -->
+  <div id="game-over-screen" class="screen menu-panel">
+    <h1 style="color: #ff6b6b;">GAME OVER</h1>
+    <p style="color: var(--gold); font-weight: bold;">최종 정산이 완료되었습니다.</p>
+    <p style="margin-bottom: 5px;">FINAL BALANCE</p>
+    <h2 id="final-balance-display">0</h2>
+    <button class="gold-btn" onclick="location.reload()" style="margin-top: 20px;">처음으로 돌아가기</button>
+  </div>
+
   <script>
-    class AudioEngine {
-      constructor() {
-        this.ctx = null;
-        this.enabled = true;
-      }
-      ensure() {
-        if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      async resume() {
-        this.ensure();
-        if (this.ctx && this.ctx.state === 'suspended') await this.ctx.resume();
-      }
-      toggle(btn) {
-        this.enabled = !this.enabled;
-        btn.textContent = this.enabled ? '🔊 사운드 켜짐' : '🔇 사운드 꺼짐';
-      }
-      playTone(freq, type, duration, vol = 0.1) {
-        if (!this.enabled) return;
-        this.ensure();
-        if (!this.ctx || this.ctx.state === 'suspended') return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = type;
-        osc.frequency.value = freq;
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
-        osc.start();
-        osc.stop(this.ctx.currentTime + duration);
-      }
-      spin() { this.playTone(160, 'triangle', 0.1, 0.04); }
-      stop() { this.playTone(450, 'square', 0.08, 0.08); }
-      lever() { this.playTone(180, 'sawtooth', 0.18, 0.08); }
-      win() { [523.25, 659.25, 783.99].forEach((f, i) => setTimeout(() => this.playTone(f, 'sine', 0.22, 0.12), i * 120)); }
-      jackpot() { for (let i = 0; i < 20; i++) setTimeout(() => this.playTone(700 + Math.random() * 300, 'square', 0.09, 0.14), i * 80); }
+    const config = { '🍒': 1.0, '🍋': 2.0, '🍇': 3.0, '💎': 4.0, '7️⃣': 5.0 };
+    const symbols = Object.keys(config);
+    const reelSize = 120;
+    
+    let balance = 0;
+    let isSpinning = false;
+    let isGameOver = false;
+    let adminMode = null; 
+    const reelsDOM = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')];
+    const stealthLight = document.getElementById('stealth-light');
+
+    function setStealthLight(color, shadow) {
+      stealthLight.style.backgroundColor = color;
+      stealthLight.style.boxShadow = `0 0 5px ${shadow}`;
     }
 
-    class ParticleSystem {
-      static fire(count = 70) {
-        const colors = ['#f2c14e', '#ffffff', '#ff7070'];
-        for (let i = 0; i < count; i++) {
-          const p = document.createElement('div');
-          p.className = 'particle';
-          p.style.left = Math.random() * window.innerWidth + 'px';
-          p.style.top = (Math.random() * 70 - 70) + 'px';
-          p.style.background = colors[Math.floor(Math.random() * colors.length)];
-          document.body.appendChild(p);
-          setTimeout(() => p.remove(), 2200);
-        }
-      }
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
     }
 
-    class SlotGame {
-      constructor() {
-        this.config = { '🍒': 1.0, '🍋': 1.5, '🍇': 2.0, '💎': 3.0, '7️⃣': 5.0 };
-        this.symbols = Object.keys(this.config);
-        this.symbolHeight = 150;
-        this.startMoney = 10000;
-        this.balance = 0;
-        this.bet = 100;
-        this.jackpot = 10000;
-        this.stats = { spins: 0, maxWin: 0 };
-        this.isSpinning = false;
-        this.isAuto = false;
-        this.adminMode = null;
-        this.audio = new AudioEngine();
-        this.initDOM();
-        this.initEvents();
-      }
+    window.addEventListener('keydown', e => {
+      if (document.getElementById('game-screen').classList.contains('active') && !isGameOver) {
+        const key = e.key.toLowerCase();
 
-      initDOM() {
-        this.els = {
-          entryScreen: document.getElementById('entry-screen'),
-          gameScreen: document.getElementById('game-screen'),
-          startBtn: document.getElementById('start-btn'),
-          startBalance: document.getElementById('start-balance'),
-          balance: document.getElementById('balance-display'),
-          jackpot: document.getElementById('jackpot-amount'),
-          statSpins: document.getElementById('stat-spins'),
-          statMaxWin: document.getElementById('stat-maxwin'),
-          bet: document.getElementById('bet-input'),
-          msg: document.getElementById('message-board'),
-          spinBtn: document.getElementById('spin-btn'),
-          autoBtn: document.getElementById('auto-btn'),
-          helpBtn: document.getElementById('help-btn'),
-          soundBtn: document.getElementById('sound-btn'),
-          resetBtn: document.getElementById('reset-btn'),
-          maxBetBtn: document.getElementById('max-bet-btn'),
-          modal: document.getElementById('info-modal'),
-          closeModal: document.getElementById('close-modal'),
-          handle: document.getElementById('handle-container'),
-          handleKnob: document.querySelector('#handle-container .handle-knob'),
-          reels: [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')],
-          betBtns: Array.from(document.querySelectorAll('[data-bet]'))
-        };
-      }
-
-      initEvents() {
-        this.els.startBtn.addEventListener('click', async () => {
-          const money = parseInt(this.els.startBalance.value, 10) || 10000;
-          await this.init(money);
-        });
-        this.els.spinBtn.addEventListener('click', () => this.spin());
-        this.els.handle.addEventListener('click', () => this.spin());
-        this.els.handleKnob.addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.spin();
-        });
-        this.els.autoBtn.addEventListener('click', () => this.toggleAuto());
-        this.els.bet.addEventListener('change', e => this.setBet(parseInt(e.target.value, 10) || 100));
-        this.els.helpBtn.addEventListener('click', () => this.showInfo());
-        this.els.closeModal.addEventListener('click', () => this.hideInfo());
-        this.els.modal.addEventListener('click', e => { if (e.target === this.els.modal) this.hideInfo(); });
-        this.els.soundBtn.addEventListener('click', () => this.audio.toggle(this.els.soundBtn));
-        this.els.resetBtn.addEventListener('click', () => this.resetGame());
-        this.els.maxBetBtn.addEventListener('click', () => this.maxBet());
-        this.els.betBtns.forEach(btn => btn.addEventListener('click', () => this.changeBet(parseInt(btn.dataset.bet, 10))));
-
-        window.addEventListener('keydown', e => {
-          if (this.els.gameScreen.style.display !== 'none') {
-            if (e.code === 'Space' && document.activeElement !== this.els.bet && !this.isSpinning) {
-              e.preventDefault();
-              this.spin();
-            }
-            if (e.key >= '1' && e.key <= '5') this.adminMode = parseInt(e.key, 10) - 1;
-            if (e.key === '9') this.adminMode = 'lose';
-            if (e.key === '0') this.adminMode = null;
-            if (e.key === 'Escape') this.hideInfo();
-          }
-        });
-
-        window.addEventListener('resize', () => {
-          this.symbolHeight = this.getSymbolHeight();
-        });
-      }
-
-      async init(startMoney) {
-        this.startMoney = Math.max(1000, startMoney);
-        this.resetData();
-        this.buildReels();
-        this.els.entryScreen.style.display = 'none';
-        this.els.gameScreen.style.display = 'flex';
-        await this.audio.resume();
-        this.showMessage('게임 시작! 오른쪽 스틱이나 SPACE를 눌러주세요.', '#fff');
-      }
-
-      getSymbolHeight() {
-        const size = getComputedStyle(document.documentElement).getPropertyValue('--reel-size').trim();
-        const n = parseInt(size, 10);
-        return Number.isFinite(n) ? n : 150;
-      }
-
-      buildReels() {
-        this.symbolHeight = this.getSymbolHeight();
-        this.els.reels.forEach(reel => {
-          let html = '';
-          for (let i = 0; i < 16; i++) html += this.symbols.map(s => `<li class="symbol">${s}</li>`).join('');
-          reel.innerHTML = html;
-          reel.style.transform = 'translateY(0px)';
-        });
-      }
-
-      resetData() {
-        this.balance = this.startMoney;
-        this.bet = Math.min(100, this.balance);
-        this.jackpot = 10000;
-        this.stats = { spins: 0, maxWin: 0 };
-        this.isSpinning = false;
-        this.isAuto = false;
-        this.adminMode = null;
-        this.updateUI();
-      }
-
-      resetGame() {
-        if (this.isSpinning) return;
-        if (!confirm('게임을 초기화하시겠습니까?')) return;
-        this.resetData();
-        this.buildReels();
-        this.showMessage('게임이 초기화되었습니다.', '#7dff9a');
-      }
-
-      showInfo() { this.els.modal.style.display = 'flex'; }
-      hideInfo() { this.els.modal.style.display = 'none'; }
-
-      setBet(amount) {
-        if (this.isSpinning) return;
-        this.bet = Math.max(10, Math.min(this.balance || 10, amount));
-        this.updateUI();
-      }
-      changeBet(delta) { this.setBet(this.bet + delta); }
-      maxBet() { this.setBet(this.balance); }
-
-      toggleAuto() {
-        this.isAuto = !this.isAuto;
-        this.els.autoBtn.classList.toggle('active', this.isAuto);
-        if (this.isAuto && !this.isSpinning) this.spin();
-      }
-
-      updateUI() {
-        this.els.balance.textContent = this.balance.toLocaleString();
-        this.els.jackpot.textContent = Math.floor(this.jackpot).toLocaleString();
-        this.els.statSpins.textContent = this.stats.spins.toLocaleString();
-        this.els.statMaxWin.textContent = this.stats.maxWin.toLocaleString();
-        this.els.bet.value = this.bet;
-      }
-
-      showMessage(text, color = '#fff') {
-        this.els.msg.innerHTML = `<span style="color:${color}; text-shadow: 0 0 8px ${color};">${text}</span>`;
-      }
-
-      async spin() {
-        if (this.isSpinning) return;
-        if (this.balance < this.bet || this.bet <= 0) {
-          this.showMessage('잔액이 부족합니다.', '#ff7a7a');
-          this.isAuto = false;
-          this.els.autoBtn.classList.remove('active');
-          return;
+        if (key === ' ' || e.code === 'Space') {
+          e.preventDefault(); 
+          if (!isSpinning) spin();
         }
 
-        this.symbolHeight = this.getSymbolHeight();
-        this.isSpinning = true;
-        this.balance -= this.bet;
-        this.jackpot += this.bet * 0.1;
-        this.stats.spins += 1;
-        this.updateUI();
-        this.els.spinBtn.disabled = true;
-        this.showMessage('릴이 돌아가는 중...', '#fff');
-        this.els.handle.classList.add('pulling');
-        this.audio.lever();
-        setTimeout(() => this.els.handle.classList.remove('pulling'), 550);
+        if (key === 'z') { adminMode = 0; setStealthLight('rgba(0, 100, 255, 0.3)', 'rgba(0, 100, 255, 0.2)'); }
+        if (key === 'x') { adminMode = 1; setStealthLight('rgba(0, 255, 255, 0.3)', 'rgba(0, 255, 255, 0.2)'); }
+        if (key === 'c') { adminMode = 2; setStealthLight('rgba(0, 255, 0, 0.3)', 'rgba(0, 255, 0, 0.2)'); }
+        if (key === 'v') { adminMode = 3; setStealthLight('rgba(255, 255, 0, 0.3)', 'rgba(255, 255, 0, 0.2)'); }
+        if (key === 'b') { adminMode = 4; setStealthLight('rgba(200, 0, 255, 0.3)', 'rgba(200, 0, 255, 0.2)'); }
+        if (key === 'n') { adminMode = 'lose'; setStealthLight('rgba(255, 0, 0, 0.3)', 'rgba(255, 0, 0, 0.2)'); }
+        if (key === 'm') { adminMode = null; setStealthLight('transparent', 'transparent'); }
+      }
+    });
 
-        let results = [];
-        if (this.adminMode === 'lose') {
-          const first = Math.floor(Math.random() * this.symbols.length);
-          results = [first, (first + 1) % this.symbols.length, (first + 2) % this.symbols.length];
-        } else if (this.adminMode !== null) {
-          results = [this.adminMode, this.adminMode, this.adminMode];
+    function startGame() {
+      balance = parseInt(document.getElementById('start-balance').value) || 1000;
+      isGameOver = false;
+      showScreen('game-screen');
+      buildReels();
+      updateUI();
+    }
+
+    function buildReels() {
+      reelsDOM.forEach(reel => {
+        let html = '';
+        for (let i = 0; i < 15; i++) {
+          symbols.forEach(s => html += `<li class="symbol">${s}</li>`);
+        }
+        reel.innerHTML = html;
+        reel.style.transform = 'translateY(0px)';
+      });
+    }
+
+    function updateUI() {
+      // 숫자 뒤에 단위를 붙이지 않고 패널 제목에 표시함 (또는 포맷 자체에 적용)
+      document.getElementById('balance-display').innerText = balance.toLocaleString();
+    }
+
+    function showMessage(text, color = 'var(--gold-light)') {
+      const msgBoard = document.getElementById('message-board');
+      msgBoard.innerText = text;
+      msgBoard.style.color = color;
+    }
+
+    // 🎯 커스텀 확률 (꽝 90%)
+    function getRandomResultByProbability() {
+      const rand = Math.random() * 100; 
+      if (rand < 90) return 'lose';               
+      else if (rand < 95) return 0;               
+      else if (rand < 98) return 1;               
+      else if (rand < 99) return 2;               
+      else if (rand < 99.9) return 3;             
+      else return 4;                              
+    }
+
+    function getForcedLoseArray() {
+      const first = Math.floor(Math.random() * symbols.length);
+      return [first, (first + 1) % symbols.length, (first + 2) % symbols.length];
+    }
+
+    async function spin() {
+      if (document.activeElement === document.getElementById('bet-input')) {
+        document.getElementById('bet-input').blur();
+      }
+
+      const bet = parseInt(document.getElementById('bet-input').value) || 100;
+
+      if (isSpinning || isGameOver) return;
+      if (balance < bet || bet <= 0) {
+        showMessage('잔액(PT)이 부족합니다.', '#ff6b6b');
+        return;
+      }
+
+      isSpinning = true;
+      balance -= bet;
+      updateUI();
+      document.getElementById('spin-btn').disabled = true;
+      document.getElementById('quit-btn').disabled = true; 
+      showMessage('머신이 회전하고 있습니다...', '#ccc');
+
+      const handle = document.getElementById('handle-container');
+      handle.classList.add('pulling');
+      setTimeout(() => handle.classList.remove('pulling'), 500);
+
+      let results = [];
+      if (adminMode === 'lose') {
+        results = getForcedLoseArray();
+      } else if (adminMode !== null) {
+        results = [adminMode, adminMode, adminMode];
+      } else {
+        const probResult = getRandomResultByProbability();
+        if (probResult === 'lose') {
+          results = getForcedLoseArray();
         } else {
-          results = [0, 0, 0].map(() => Math.floor(Math.random() * this.symbols.length));
+          results = [probResult, probResult, probResult];
         }
-
-        const promises = this.els.reels.map((reel, i) => new Promise(resolve => {
-          reel.style.transition = 'none';
-          reel.style.transform = 'translateY(0px)';
-          reel.offsetHeight;
-          const move = (this.symbolHeight * this.symbols.length * (7 + i * 2)) + (results[i] * this.symbolHeight);
-          reel.style.transition = `transform ${2.4 + i * 0.35}s cubic-bezier(0.16, 0.84, 0.22, 1)`;
-          reel.style.transform = `translateY(-${move}px)`;
-          const tick = setInterval(() => this.audio.spin(), 120);
-          setTimeout(() => {
-            clearInterval(tick);
-            this.audio.stop();
-            resolve();
-          }, 2400 + i * 350);
-        }));
-
-        await Promise.all(promises);
-        this.processResult(results);
-        this.adminMode = null;
-        this.isSpinning = false;
-        this.els.spinBtn.disabled = false;
-        if (this.bet > this.balance && this.balance > 0) this.setBet(this.balance);
-        if (this.isAuto) setTimeout(() => this.spin(), 900);
       }
 
-      processResult(indices) {
-        if (indices[0] === indices[1] && indices[1] === indices[2]) {
-          const symbol = this.symbols[indices[0]];
-          let win = Math.floor(this.bet * this.config[symbol]);
-          if (symbol === '7️⃣') {
-            win += Math.floor(this.jackpot);
-            this.jackpot = 10000;
-            this.showMessage(`🔥 JACKPOT! +${win.toLocaleString()}원 🔥`, '#f2c14e');
-            this.audio.jackpot();
-            ParticleSystem.fire(120);
-          } else {
-            this.showMessage(`🎉 당첨! +${win.toLocaleString()}원 (${symbol})`, '#ffdf8d');
-            this.audio.win();
-            ParticleSystem.fire(60);
-          }
-          this.balance += win;
-          if (win > this.stats.maxWin) this.stats.maxWin = win;
-        } else {
-          this.showMessage('아쉽습니다. 다음 기회에!', '#d6d9e2');
-        }
-        this.updateUI();
+      const promises = reelsDOM.map((reel, i) => new Promise(resolve => {
+        reel.style.transition = 'none';
+        reel.style.transform = 'translateY(0px)';
+        void reel.offsetHeight;
+
+        const move = (reelSize * symbols.length * (5 + i)) + (results[i] * reelSize);
+        const duration = 2.5 + i * 0.6;
+
+        reel.style.transition = `transform ${duration}s cubic-bezier(0.1, 0.8, 0.1, 1)`;
+        reel.style.transform = `translateY(-${move}px)`;
+
+        setTimeout(resolve, duration * 1000);
+      }));
+
+      await Promise.all(promises);
+      checkResult(results, bet);
+    }
+
+    function checkResult(results, bet) {
+      if (results[0] === results[1] && results[1] === results[2]) {
+        const symbol = symbols[results[0]];
+        const winAmount = Math.floor(bet * config[symbol]);
+        balance += winAmount;
+        showMessage(`🎉 당첨! +${winAmount.toLocaleString()} PT (${symbol})`, 'var(--gold)');
+        updateUI();
+
+        // 당첨 시 2.5초 대기 후 강제 게임 종료 (isManual = false)
+        isGameOver = true;
+        setTimeout(() => endGame(false), 2500);
+
+      } else {
+        showMessage('아쉽습니다. 다음 기회에 도전하십시오.', '#888');
+        updateUI();
+        isSpinning = false;
+        adminMode = null; 
+        setStealthLight('transparent', 'transparent');
+        document.getElementById('spin-btn').disabled = false;
+        document.getElementById('quit-btn').disabled = false;
       }
     }
 
-    const game = new SlotGame();
+    // 게임 종료 및 정산 (수동 종료 여부 확인)
+    function endGame(isManual = false) {
+      if(isSpinning && !isGameOver) return; // 스핀 도중 수동 종료 방지
+      isGameOver = true;
+      
+      let bonusMessage = "";
+      if (isManual) {
+        balance += 200; // 수동 종료 시 200 PT 보너스 지급
+        bonusMessage = "<br><span style='font-size: 18px; color: #7dff9a; display: block; margin-top: 15px; font-family: sans-serif;'>💡 수동 종료 보너스 +200 PT 지급!</span>";
+      }
+
+      // 최종 금액 및 보너스 메시지 표시 (단위 PT 적용)
+      document.getElementById('final-balance-display').innerHTML = balance.toLocaleString() + ' PT' + bonusMessage;
+      showScreen('game-over-screen');
+    }
   </script>
 </body>
 </html>
