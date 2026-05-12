@@ -1,175 +1,213 @@
-let balance = 0;
+// =========================================================================
+// 🎰 VIP 슬롯머신 게임 데이터 및 로직
+// =========================================================================
+
+const symbols = ['🍒', '🍋', '🍉', '🔔', '💎', '7️⃣'];
+
+// 심볼별 배당률
+const config = {
+    '🍒': 2,
+    '🍋': 3,
+    '🍉': 5,
+    '🔔': 10,
+    '💎': 20,
+    '7️⃣': 50
+};
+
+// 게임 상태 변수
+let balance = 1000;      // 초기 소지금 (필요시 변경 가능)
+let currentBet = 100;    // 1회 스핀 배팅액
 let isSpinning = false;
 let isGameOver = false;
-let adminMode = null; 
-const reelsDOM = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')];
-const stealthLight = document.getElementById('stealth-light');
+let adminMode = null;
 
-function setStealthLight(color, shadow) {
-  stealthLight.style.backgroundColor = color;
-  stealthLight.style.boxShadow = `0 0 5px ${shadow}`;
-}
+// =========================================================================
+// 🌟 초기화 및 이벤트 연결
+// =========================================================================
+function init() {
+    updateUI();
+    showMessage('VIP 슬롯머신에 오신 것을 환영합니다.', '#fff');
 
-function showScreen(screenId) {
-  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-  document.getElementById(screenId).classList.add('active');
-}
-
-window.addEventListener('keydown', e => {
-  if (document.getElementById('game-screen').classList.contains('active') && !isGameOver) {
-    const key = e.key.toLowerCase();
-
-    if (key === ' ' || e.code === 'Space') {
-      e.preventDefault(); 
-      if (!isSpinning) spin();
-    }
-
-    if (key === 'z') { adminMode = 0; setStealthLight('rgba(0, 100, 255, 0.3)', 'rgba(0, 100, 255, 0.2)'); }
-    if (key === 'x') { adminMode = 1; setStealthLight('rgba(0, 255, 255, 0.3)', 'rgba(0, 255, 255, 0.2)'); }
-    if (key === 'c') { adminMode = 2; setStealthLight('rgba(0, 255, 0, 0.3)', 'rgba(0, 255, 0, 0.2)'); }
-    if (key === 'v') { adminMode = 3; setStealthLight('rgba(255, 255, 0, 0.3)', 'rgba(255, 255, 0, 0.2)'); }
-    if (key === 'b') { adminMode = 4; setStealthLight('rgba(200, 0, 255, 0.3)', 'rgba(200, 0, 255, 0.2)'); }
-    if (key === 'n') { adminMode = 'lose'; setStealthLight('rgba(255, 0, 0, 0.3)', 'rgba(255, 0, 0, 0.2)'); }
-    if (key === 'm') { adminMode = null; setStealthLight('transparent', 'transparent'); }
-  }
-});
-
-function startGame() {
-  balance = parseInt(document.getElementById('start-balance').value) || 1000;
-  isGameOver = false;
-  showScreen('game-screen');
-  buildReels();
-  updateUI();
-}
-
-function buildReels() {
-  reelsDOM.forEach(reel => {
-    let html = '';
-    for (let i = 0; i < 15; i++) {
-      symbols.forEach(s => html += `<li class="symbol">${s}</li>`);
-    }
-    reel.innerHTML = html;
-    reel.style.transform = 'translateY(0px)';
-  });
+    // 키보드 이벤트 (관리자 비밀 조작용)
+    // 숫자 1: 강제 당첨, 숫자 2: 강제 실패, 숫자 3: 강제 잭팟
+    window.addEventListener('keydown', (e) => {
+        if (e.key === '1') { adminMode = 'win'; setStealthLight('var(--neon-green)', 'transparent'); }
+        if (e.key === '2') { adminMode = 'lose'; setStealthLight('var(--danger)', 'transparent'); }
+        if (e.key === '3') { adminMode = 'jackpot'; setStealthLight('var(--gold)', 'transparent'); }
+    });
 }
 
 function updateUI() {
-  document.getElementById('balance-display').innerText = balance.toLocaleString();
+    const balanceElem = document.getElementById('balance');
+    const betElem = document.getElementById('bet-amount');
+    
+    if (balanceElem) balanceElem.innerText = balance.toLocaleString();
+    if (betElem) betElem.innerText = currentBet.toLocaleString();
 }
 
-function showMessage(text, color = 'var(--gold-light)') {
-  const msgBoard = document.getElementById('message-board');
-  msgBoard.innerText = text;
-  msgBoard.style.color = color;
-}
-
-// 🎯 커스텀 확률 (꽝 95%)
-function getRandomResultByProbability() {
-  const rand = Math.random() * 100; 
-  if (rand < 95) return 'lose';                
-  else if (rand < 98) return 0;                
-  else if (rand < 99.5) return 1;                
-  else if (rand < 99.99) return 2;                
-  else if (rand < 99.999) return 3;              
-  else return 4;                                  
-}
-
-function getForcedLoseArray() {
-  const first = Math.floor(Math.random() * symbols.length);
-  return [first, (first + 1) % symbols.length, (first + 2) % symbols.length];
-}
-
-async function spin() {
-  if (document.activeElement === document.getElementById('bet-input')) {
-    document.getElementById('bet-input').blur();
-  }
-
-  const bet = parseInt(document.getElementById('bet-input').value) || 100;
-
-  if (isSpinning || isGameOver) return;
-  if (balance < bet || bet <= 0) {
-    showMessage('잔액(PT)이 부족합니다.', '#ff6b6b');
-    return;
-  }
-
-  isSpinning = true;
-  balance -= bet;
-  updateUI();
-  document.getElementById('spin-btn').disabled = true;
-  document.getElementById('quit-btn').disabled = true; 
-  showMessage('머신이 회전하고 있습니다...', '#ccc');
-
-  const handle = document.getElementById('handle-container');
-  handle.classList.add('pulling');
-  setTimeout(() => handle.classList.remove('pulling'), 500);
-
-  let results = [];
-  if (adminMode === 'lose') {
-    results = getForcedLoseArray();
-  } else if (adminMode !== null) {
-    results = [adminMode, adminMode, adminMode];
-  } else {
-    const probResult = getRandomResultByProbability();
-    if (probResult === 'lose') {
-      results = getForcedLoseArray();
-    } else {
-      results = [probResult, probResult, probResult];
+function showMessage(msg, color = '#fff') {
+    const msgElem = document.getElementById('message');
+    if (msgElem) {
+        msgElem.innerText = msg;
+        msgElem.style.color = color;
     }
-  }
-
-  const promises = reelsDOM.map((reel, i) => new Promise(resolve => {
-    reel.style.transition = 'none';
-    reel.style.transform = 'translateY(0px)';
-    void reel.offsetHeight;
-
-    const move = (reelSize * symbols.length * (5 + i)) + (results[i] * reelSize);
-    const duration = 2.5 + i * 0.6;
-
-    reel.style.transition = `transform ${duration}s cubic-bezier(0.1, 0.8, 0.1, 1)`;
-    reel.style.transform = `translateY(-${move}px)`;
-
-    setTimeout(resolve, duration * 1000);
-  }));
-
-  await Promise.all(promises);
-  checkResult(results, bet);
 }
 
+function setStealthLight(color1, color2) {
+    const light = document.getElementById('stealth-light');
+    if (light) {
+        light.style.background = color1; // 관리자 모드가 켜졌는지 몰래 확인하는 조명
+    }
+}
+
+// =========================================================================
+// 🎰 슬롯머신 구동 로직
+// =========================================================================
+function spin() {
+    if (isSpinning || isGameOver) return;
+    if (balance < currentBet) {
+        showMessage('잔액이 부족합니다.', '#ff6b6b');
+        return;
+    }
+
+    isSpinning = true;
+    balance -= currentBet;
+    updateUI();
+    showMessage('슬롯이 돌아갑니다...', '#aaa');
+    
+    // 버튼 잠금
+    const spinBtn = document.getElementById('spin-btn');
+    const quitBtn = document.getElementById('quit-btn');
+    if(spinBtn) spinBtn.disabled = true;
+    if(quitBtn) quitBtn.disabled = true;
+
+    // 결과 결정 (관리자 모드 개입)
+    let finalResults = [];
+    if (adminMode === 'win') {
+        const sym = Math.floor(Math.random() * 4); // 🍒, 🍋, 🍉, 🔔 중 하나 당첨
+        finalResults = [sym, sym, sym];
+    } else if (adminMode === 'jackpot') {
+        finalResults = [5, 5, 5]; // 7️⃣ 7️⃣ 7️⃣ 무조건 당첨
+    } else if (adminMode === 'lose') {
+        finalResults = [0, 1, 2]; // 무조건 꽝
+    } else {
+        // 자연 확률 (승률 약 20%)
+        if (Math.random() < 0.20) {
+            const sym = Math.floor(Math.random() * symbols.length);
+            finalResults = [sym, sym, sym];
+        } else {
+            finalResults = [
+                Math.floor(Math.random() * symbols.length),
+                Math.floor(Math.random() * symbols.length),
+                Math.floor(Math.random() * symbols.length)
+            ];
+            // 우연히 3개가 같아지는 것을 방지 (꽝 보장)
+            if (finalResults[0] === finalResults[1] && finalResults[1] === finalResults[2]) {
+                finalResults[2] = (finalResults[2] + 1) % symbols.length;
+            }
+        }
+    }
+
+    // 릴 애니메이션
+    const reels = [
+        document.getElementById('reel1'),
+        document.getElementById('reel2'),
+        document.getElementById('reel3')
+    ];
+    
+    let spinCount = 0;
+    const spinInterval = setInterval(() => {
+        reels.forEach(reel => {
+            if (reel) reel.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+        });
+        spinCount++;
+        
+        // 약 2초간 회전 후 멈춤
+        if (spinCount >= 20) {
+            clearInterval(spinInterval);
+            reels[0].innerText = symbols[finalResults[0]];
+            reels[1].innerText = symbols[finalResults[1]];
+            reels[2].innerText = symbols[finalResults[2]];
+            
+            checkResult(finalResults, currentBet);
+        }
+    }, 100);
+}
+
+// =========================================================================
+// 🎯 결과 확인 및 파산(0원) 검사 (요청하신 기능 반영 완료)
+// =========================================================================
 function checkResult(results, bet) {
-  if (results[0] === results[1] && results[1] === results[2]) {
-    const symbol = symbols[results[0]];
-    const winAmount = Math.floor(bet * config[symbol]);
-    balance += winAmount;
-    showMessage(`🎉 당첨! +${winAmount.toLocaleString()} PT (${symbol})`, 'var(--gold)');
-    updateUI();
+    if (results[0] === results[1] && results[1] === results[2]) {
+        const symbol = symbols[results[0]];
+        const winAmount = Math.floor(bet * config[symbol]);
+        balance += winAmount;
+        showMessage(`🎉 당첨! +${winAmount.toLocaleString()} PT (${symbol})`, 'gold');
+        updateUI();
 
-    // 당첨 시 2.5초 대기 후 강제 게임 종료
+        // 당첨 시 2.5초 대기 후 강제 게임 종료
+        isGameOver = true;
+        setTimeout(() => endGame(false), 2500);
+
+    } else {
+        showMessage('아쉽습니다. 다음 기회에 도전하십시오.', '#888');
+        updateUI();
+
+        // 🌟 요청하신 [잔액 0원 시 강제 종료] 로직 🌟
+        if (balance <= 0) {
+            showMessage('잔액이 모두 소진되었습니다. 게임을 종료합니다.', '#ff6b6b');
+            isGameOver = true;
+            setTimeout(() => endGame(false), 2500);
+            return; // 강제 종료되므로 아래 코드는 무시됨
+        }
+
+        // 잔액이 남아있으면 다음 스핀 준비
+        isSpinning = false;
+        adminMode = null; 
+        setStealthLight('transparent', 'transparent');
+        
+        const spinBtn = document.getElementById('spin-btn');
+        const quitBtn = document.getElementById('quit-btn');
+        if(spinBtn) spinBtn.disabled = false;
+        if(quitBtn) quitBtn.disabled = false;
+    }
+}
+
+// =========================================================================
+// 🚪 게임 종료 및 정산 처리
+// =========================================================================
+function endGame(isManualQuit) {
     isGameOver = true;
-    setTimeout(() => endGame(false), 2500);
+    let finalMessage = isManualQuit ? "게임을 종료하고 정산합니다." : "게임이 종료되었습니다.";
+    
+    // 화면을 덮는 정산 완료(파산) 오버레이 생성
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.background = 'rgba(0,0,0,0.9)';
+    overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    overlay.style.justifyContent = 'center';
+    overlay.style.alignItems = 'center';
+    overlay.style.zIndex = '9999';
+    overlay.style.color = '#fff';
 
-  } else {
-    showMessage('아쉽습니다. 다음 기회에 도전하십시오.', '#888');
-    updateUI();
-    isSpinning = false;
-    adminMode = null; 
-    setStealthLight('transparent', 'transparent');
-    document.getElementById('spin-btn').disabled = false;
-    document.getElementById('quit-btn').disabled = false;
-  }
+    overlay.innerHTML = `
+        <h1 style="color: ${balance > 0 ? 'gold' : '#ff6b6b'}; font-size: 3rem; margin-bottom: 20px; font-family: 'Orbitron', sans-serif;">
+            ${balance > 0 ? '💰 정산 완료 💰' : '💀 파산 💀'}
+        </h1>
+        <p style="font-size: 1.5rem; margin-bottom: 30px;">${finalMessage}</p>
+        <div style="font-size: 2rem; background: rgba(255,255,255,0.1); padding: 20px 40px; border-radius: 15px; border: 1px solid #555;">
+            최종 잔액: <b style="color: ${balance > 0 ? 'gold' : '#ff6b6b'};">${balance.toLocaleString()} PT</b>
+        </div>
+        <p style="margin-top: 30px; color: #888; font-size: 1rem;">담당 진행요원에게 최종 화면을 보여주세요.</p>
+    `;
+
+    document.body.appendChild(overlay);
 }
 
-// 게임 종료 및 정산
-function endGame(isManual = false) {
-  if(isSpinning && !isGameOver) return; 
-  isGameOver = true;
-  
-  let bonusMessage = "";
-  if (isManual) {
-    balance += 200; 
-    bonusMessage = "<br><span style='font-size: 18px; color: #7dff9a; display: block; margin-top: 15px; font-family: sans-serif;'>💡 수동 종료 보너스 +200 PT 지급!</span>";
-  }
-
-  document.getElementById('final-balance-display').innerHTML = balance.toLocaleString() + ' PT' + bonusMessage;
-  showScreen('game-over-screen');
-
-}
+// 스크립트가 불러와지면 init 함수 실행
+window.onload = init;
