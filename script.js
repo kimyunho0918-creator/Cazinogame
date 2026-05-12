@@ -171,4 +171,6 @@ function endGame(isManual = false) {
 
   document.getElementById('final-balance-display').innerHTML = balance.toLocaleString() + ' PT' + bonusMessage;
   showScreen('game-over-screen');
+  if(balance = 0){
+    setTimeout(() => endGame(false), 2500); }
 }
